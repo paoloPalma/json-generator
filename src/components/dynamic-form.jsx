@@ -213,6 +213,21 @@ export default function DynamicForm({ category, schema, onChange, formData }) {
     }
   }
 
+  // Aggiungiamo una nuova funzione per gestire il caricamento di immagini per gli array semplici
+  // Aggiungi questa funzione dopo handleComplexImageUpload
+
+  // Funzione per gestire il caricamento di un'immagine per un elemento di array semplice
+  const handleArrayImageUpload = async (stepIndex, field, itemIndex, file) => {
+    if (file) {
+      try {
+        const base64String = await compressAndConvertToBase64(file)
+        handleArrayItemChange(stepIndex, field, itemIndex, base64String)
+      } catch (error) {
+        console.error("Errore nella conversione dell'immagine:", error)
+      }
+    }
+  }
+
   // Render basic fields (non-step based)
   if (!schema.hasSteps) {
     return (
@@ -416,26 +431,60 @@ export default function DynamicForm({ category, schema, onChange, formData }) {
                         )
                       }
 
+                      // Modifica la sezione di gestione campi array semplici nel render per supportare il caricamento di immagini
+                      // Sostituisci la sezione "Gestione campi array semplici" con questo codice:
+
                       // Gestione campi array semplici
                       if (fieldSchema.isArray && fieldSchema.type !== "complex") {
+                        const isPuzzleImageArray = category === "puzzle-game" && field === "correctArray"
+
                         return (
                           <div key={field} className="space-y-2">
                             <Label>{fieldSchema.label}</Label>
                             {Array.isArray(step[field]) &&
                               step[field].map((item, itemIndex) => (
-                                <div key={itemIndex} className="flex items-center space-x-2">
-                                  <Input
-                                    value={item || ""}
-                                    onChange={(e) => handleArrayItemChange(stepIndex, field, itemIndex, e.target.value)}
-                                    placeholder={fieldSchema.placeholder || ""}
-                                  />
-                                  <Button
-                                    variant="destructive"
-                                    size="icon"
-                                    onClick={() => removeArrayItem(stepIndex, field, itemIndex)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
+                                <div key={itemIndex} className="flex flex-col space-y-2">
+                                  <div className="flex items-center space-x-2">
+                                    {isPuzzleImageArray ? (
+                                      <div className="flex-1 space-y-2">
+                                        <Input
+                                          id={`${stepIndex}-${field}-${itemIndex}-file`}
+                                          type="file"
+                                          accept="image/*"
+                                          onChange={(e) => {
+                                            if (e.target.files && e.target.files[0]) {
+                                              handleArrayImageUpload(stepIndex, field, itemIndex, e.target.files[0])
+                                            }
+                                          }}
+                                        />
+                                        {item && item.startsWith("data:image") && (
+                                          <div className="mt-2 border rounded-md p-2">
+                                            <p className="text-sm text-gray-500 mb-2">Anteprima:</p>
+                                            <img
+                                              src={item || "/placeholder.svg"}
+                                              alt={`Pezzo puzzle ${itemIndex + 1}`}
+                                              className="max-h-40 max-w-full object-contain"
+                                            />
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <Input
+                                        value={item || ""}
+                                        onChange={(e) =>
+                                          handleArrayItemChange(stepIndex, field, itemIndex, e.target.value)
+                                        }
+                                        placeholder={fieldSchema.placeholder || ""}
+                                      />
+                                    )}
+                                    <Button
+                                      variant="destructive"
+                                      size="icon"
+                                      onClick={() => removeArrayItem(stepIndex, field, itemIndex)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
                                 </div>
                               ))}
                             <Button variant="outline" size="sm" onClick={() => addArrayItem(stepIndex, field)}>
