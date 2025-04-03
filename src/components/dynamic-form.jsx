@@ -30,38 +30,44 @@ export default function DynamicForm({ category, schema, onChange, formData }) {
 
   // Inizializza i dati del form se vuoti
   // Modify the useEffect that initializes form data to conditionally include FirstImage
-  useEffect(() => {
-    if (!initialized && schema) {
-      const initialData = {
-        category: category,
-        language: "italiano", // Default language
-      };
+  // Modify the useEffect that initializes form data to use "pages" instead of "steps"
+useEffect(() => {
+  if (!initialized && schema) {
+    const initialData = {
+      category: category,
+      language: "italiano", // Default language
+    };
 
-      // Add FirstImage only if there are no additionalFields
-      if (!schema.additionalFields) {
-        initialData.FirstImage = "";
-      }
-
-      // Add additionalFields if they exist
-      if (schema.additionalFields) {
-        Object.keys(schema.additionalFields).forEach((field) => {
-          initialData[field] =
-            schema.additionalFields[field].defaultValue || "";
-        });
-      }
-
-      if (schema.hasSteps) {
-        initialData.steps = [createEmptyStep(schema.stepSchema)];
-      } else {
-        Object.keys(schema.fields).forEach((field) => {
-          initialData[field] = schema.fields[field].defaultValue || "";
-        });
-      }
-
-      onChange(initialData);
-      setInitialized(true);
+    // Add FirstImage only if there are no additionalFields
+    if (!schema.additionalFields) {
+      initialData.FirstImage = "";
     }
-  }, [schema, initialized, onChange, createEmptyStep, category]);
+
+    // Add additionalFields if they exist
+    if (schema.additionalFields) {
+      Object.keys(schema.additionalFields).forEach((field) => {
+        initialData[field] = schema.additionalFields[field].defaultValue || "";
+      });
+    }
+
+    if (schema.hasSteps) {
+      // Use "pages" instead of "steps" if additionalFields exists
+      const arrayKey = schema.additionalFields ? "pages" : "steps";
+      initialData[arrayKey] = [createEmptyStep(schema.stepSchema)];
+    } else {
+      Object.keys(schema.fields).forEach((field) => {
+        initialData[field] = schema.fields[field].defaultValue || "";
+      });
+    }
+
+    onChange(initialData);
+    setInitialized(true);
+  }
+}, [schema, initialized, onChange, createEmptyStep, category])
+
+const getArrayKey = () => {
+  return schema.additionalFields ? "pages" : "steps";
+};
 
   const handleAdditionalImageUpload = async (field, file) => {
     if (file) {
@@ -89,38 +95,38 @@ export default function DynamicForm({ category, schema, onChange, formData }) {
     onChange(newData);
   };
 
-  const handleStepFieldChange = (stepIndex, field, value) => {
-    const newData = JSON.parse(JSON.stringify(formData)); // Deep clone
-    newData.steps[stepIndex][field] = value;
-    onChange(newData);
-  };
-
-  const handleArrayItemChange = (stepIndex, field, itemIndex, value) => {
-    const newData = JSON.parse(JSON.stringify(formData)); // Deep clone
-    if (!newData.steps[stepIndex][field]) {
-      newData.steps[stepIndex][field] = [];
-    }
-    newData.steps[stepIndex][field][itemIndex] = value;
-    onChange(newData);
-  };
-
-  const handleComplexArrayItemChange = (
-    stepIndex,
-    field,
-    itemIndex,
-    subField,
-    value
-  ) => {
-    const newData = JSON.parse(JSON.stringify(formData)); // Deep clone
-    if (!newData.steps[stepIndex][field]) {
-      newData.steps[stepIndex][field] = [];
-    }
-    if (!newData.steps[stepIndex][field][itemIndex]) {
-      newData.steps[stepIndex][field][itemIndex] = {};
-    }
-    newData.steps[stepIndex][field][itemIndex][subField] = value;
-    onChange(newData);
-  };
+ // Modify the handleStepFieldChange function to use the correct array key
+const handleStepFieldChange = (stepIndex, field, value) => {
+  const newData = JSON.parse(JSON.stringify(formData)); // Deep clone
+  const arrayKey = getArrayKey();
+  
+  newData[arrayKey][stepIndex][field] = value;
+  onChange(newData);
+};
+// Modify the handleArrayItemChange function to use the correct array key
+const handleArrayItemChange = (stepIndex, field, itemIndex, value) => {
+  const newData = JSON.parse(JSON.stringify(formData)); // Deep clone
+  const arrayKey = getArrayKey();
+  
+  if (!newData[arrayKey][stepIndex][field]) {
+    newData[arrayKey][stepIndex][field] = [];
+  }
+  newData[arrayKey][stepIndex][field][itemIndex] = value;
+  onChange(newData);
+};
+const handleComplexArrayItemChange = (stepIndex, field, itemIndex, subField, value) => {
+  const newData = JSON.parse(JSON.stringify(formData)); // Deep clone
+  const arrayKey = getArrayKey();
+  
+  if (!newData[arrayKey][stepIndex][field]) {
+    newData[arrayKey][stepIndex][field] = [];
+  }
+  if (!newData[arrayKey][stepIndex][field][itemIndex]) {
+    newData[arrayKey][stepIndex][field][itemIndex] = {};
+  }
+  newData[arrayKey][stepIndex][field][itemIndex][subField] = value;
+  onChange(newData);
+};
 
   // Funzione per trovare il prossimo ID disponibile
   const getNextId = (items, idField) => {
@@ -137,81 +143,80 @@ export default function DynamicForm({ category, schema, onChange, formData }) {
     return maxId + 1;
   };
 
-  const addArrayItem = (
-    stepIndex,
-    field,
-    isComplex = false,
-    fieldSchema = null
-  ) => {
-    const newData = JSON.parse(JSON.stringify(formData)); // Deep clone
-    if (!newData.steps[stepIndex][field]) {
-      newData.steps[stepIndex][field] = [];
-    }
+  // Modify the addArrayItem function to use the correct array key
+const addArrayItem = (stepIndex, field, isComplex = false, fieldSchema = null) => {
+  const newData = JSON.parse(JSON.stringify(formData)); // Deep clone
+  const arrayKey = getArrayKey();
+  
+  if (!newData[arrayKey][stepIndex][field]) {
+    newData[arrayKey][stepIndex][field] = [];
+  }
 
-    if (isComplex && fieldSchema) {
-      const newItem = {};
+  if (isComplex && fieldSchema) {
+    const newItem = {};
 
-      // Verifica se ci sono campi ID da auto-incrementare
-      const hasIdFields = Object.keys(fieldSchema.fields).some(
-        (subField) =>
-          subField.toLowerCase().includes("id") &&
-          fieldSchema.fields[subField].type === "number"
-      );
+    // Verifica se ci sono campi ID da auto-incrementare
+    const hasIdFields = Object.keys(fieldSchema.fields).some(
+      (subField) => subField.toLowerCase().includes("id") && fieldSchema.fields[subField].type === "number",
+    );
 
-      Object.keys(fieldSchema.fields).forEach((subField) => {
-        const subFieldSchema = fieldSchema.fields[subField];
+    Object.keys(fieldSchema.fields).forEach((subField) => {
+      const subFieldSchema = fieldSchema.fields[subField];
 
-        if (subFieldSchema.type === "checkbox") {
-          // Inizializza esplicitamente i checkbox come false
-          newItem[subField] = false;
-        } else if (
-          subFieldSchema.type === "number" &&
-          subField.toLowerCase().includes("id")
-        ) {
-          // Auto-incrementa i campi ID
-          newItem[subField] = getNextId(
-            newData.steps[stepIndex][field],
-            subField
-          );
-        } else {
-          newItem[subField] =
-            subFieldSchema.defaultValue ||
-            (subFieldSchema.type === "number" ? 0 : "");
-        }
-      });
+      if (subFieldSchema.type === "checkbox") {
+        // Inizializza esplicitamente i checkbox come false
+        newItem[subField] = false;
+      } else if (subFieldSchema.type === "number" && subField.toLowerCase().includes("id")) {
+        // Auto-incrementa i campi ID
+        newItem[subField] = getNextId(newData[arrayKey][stepIndex][field], subField);
+      } else {
+        newItem[subField] = subFieldSchema.defaultValue || (subFieldSchema.type === "number" ? 0 : "");
+      }
+    });
 
-      newData.steps[stepIndex][field].push(newItem);
-    } else {
-      newData.steps[stepIndex][field].push("");
-    }
+    newData[arrayKey][stepIndex][field].push(newItem);
+  } else {
+    newData[arrayKey][stepIndex][field].push("");
+  }
 
-    onChange(newData);
-  };
+  onChange(newData);
+};
 
-  const removeArrayItem = (stepIndex, field, itemIndex) => {
-    const newData = JSON.parse(JSON.stringify(formData)); // Deep clone
-    newData.steps[stepIndex][field].splice(itemIndex, 1);
-    onChange(newData);
-  };
+  // Modify the removeArrayItem function to use the correct array key
+const removeArrayItem = (stepIndex, field, itemIndex) => {
+  const newData = JSON.parse(JSON.stringify(formData)); // Deep clone
+  const arrayKey = getArrayKey();
+  
+  newData[arrayKey][stepIndex][field].splice(itemIndex, 1);
+  onChange(newData);
+};
 
   const addStep = () => {
     const newData = JSON.parse(JSON.stringify(formData)); // Deep clone
-    if (!newData.steps) {
-      newData.steps = [];
+    const arrayKey = getArrayKey();
+    
+    if (!newData[arrayKey]) {
+      newData[arrayKey] = [];
     }
-    newData.steps.push(createEmptyStep(schema.stepSchema));
+    newData[arrayKey].push(createEmptyStep(schema.stepSchema));
     onChange(newData);
-    setActiveTab((newData.steps.length - 1).toString());
+    setActiveTab((newData[arrayKey].length - 1).toString());
   };
 
-  const removeStep = (index) => {
-    const newData = JSON.parse(JSON.stringify(formData)); // Deep clone
-    newData.steps.splice(index, 1);
-    onChange(newData);
-    if (Number.parseInt(activeTab) >= newData.steps.length) {
-      setActiveTab((newData.steps.length - 1).toString());
-    }
-  };
+ // Modify the removeStep function to use the correct array key
+const removeStep = (index) => {
+  const newData = JSON.parse(JSON.stringify(formData)); // Deep clone
+  const arrayKey = getArrayKey();
+  
+  newData[arrayKey].splice(index, 1);
+  onChange(newData);
+  if (Number.parseInt(activeTab) >= newData[arrayKey].length) {
+    setActiveTab((newData[arrayKey].length - 1).toString());
+  }
+};
+
+const arrayKey = getArrayKey();
+const itemLabel = schema.additionalFields ? "Pagina" : "Step";
 
   // Funzione per comprimere e convertire un file in base64
   const compressAndConvertToBase64 = (file) => {
@@ -435,33 +440,29 @@ export default function DynamicForm({ category, schema, onChange, formData }) {
         </div>
       )}
 
-      {formData.steps && formData.steps.length > 0 ? (
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="flex items-center justify-between mb-4">
-            <TabsList>
-              {formData.steps.map((_, index) => (
-                <TabsTrigger key={index} value={index.toString()}>
-                  Step {index + 1}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm" onClick={addStep}>
-                <Plus className="h-4 w-4 mr-1" /> Aggiungi Step
+      {formData[arrayKey] && formData[arrayKey].length > 0 ? (
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="flex items-center justify-between mb-4">
+          <TabsList>
+            {formData[arrayKey].map((_, index) => (
+              <TabsTrigger key={index} value={index.toString()}>
+                {itemLabel} {index + 1}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <div className="flex space-x-2">
+            <Button variant="outline" size="sm" onClick={addStep}>
+              <Plus className="h-4 w-4 mr-1" /> Aggiungi {itemLabel.toLowerCase()}
+            </Button>
+            {formData[arrayKey].length > 1 && (
+              <Button variant="destructive" size="sm" onClick={() => removeStep(Number.parseInt(activeTab))}>
+                <Trash2 className="h-4 w-4 mr-1" /> Rimuovi {itemLabel.toLowerCase()}
               </Button>
-              {formData.steps.length > 1 && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => removeStep(Number.parseInt(activeTab))}
-                >
-                  <Trash2 className="h-4 w-4 mr-1" /> Rimuovi Step
-                </Button>
-              )}
-            </div>
+            )}
           </div>
+        </div>
 
-          {formData.steps.map((step, stepIndex) => (
+          {formData[arrayKey].map((step, stepIndex) => (
             <TabsContent key={stepIndex} value={stepIndex.toString()}>
               <Card>
                 <CardContent className="pt-6">
