@@ -1,4 +1,35 @@
 export const gameCategories = {
+  "lessons": {
+    label: "Lezioni",
+    schema: {
+      hasSteps: true,
+      stepSchema: {
+        text: {
+          type: "textarea",
+          label: "Testo della Pagina",
+          placeholder: "Inserisci il testo della pagina",
+        },
+      },
+      // Campi aggiuntivi al di fuori degli step
+      additionalFields: {
+        title: {
+          type: "text",
+          label: "Titolo",
+          placeholder: "Inserisci il titolo della lezione",
+        },
+        subtitle: {
+          type: "text",
+          label: "Sottotitolo",
+          placeholder: "Inserisci il sottotitolo della lezione",
+        },
+        image: {
+          type: "image",
+          label: "Immagine della Lezione",
+          placeholder: "Carica un'immagine per la lezione",
+        },
+      },
+    },
+  },
   "take-order": {
     label: "Metti in Ordine",
     schema: {
