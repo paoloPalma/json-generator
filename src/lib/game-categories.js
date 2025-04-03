@@ -16,6 +16,11 @@ export const gameCategories = {
           itemLabel: "elemento",
           placeholder: "Inserisci un elemento",
         },
+        final_comment: {
+          type: "textarea",
+          label: "Commento Finale",
+          placeholder: "Inserisci un commento finale per questo step",
+        },
       },
     },
   },
@@ -57,6 +62,11 @@ export const gameCategories = {
             },
           },
         },
+        final_comment: {
+          type: "textarea",
+          label: "Commento Finale",
+          placeholder: "Inserisci un commento finale per questo step",
+        },
       },
     },
   },
@@ -87,6 +97,11 @@ export const gameCategories = {
               placeholder: "Inserisci un ID numerico",
             },
           },
+        },
+        final_comment: {
+          type: "textarea",
+          label: "Commento Finale",
+          placeholder: "Inserisci un commento finale per questo step",
         },
       },
     },
@@ -128,6 +143,11 @@ export const gameCategories = {
               placeholder: "Inserisci un ID numerico",
             },
           },
+        },
+        final_comment: {
+          type: "textarea",
+          label: "Commento Finale",
+          placeholder: "Inserisci un commento finale per questo step",
         },
       },
     },
@@ -175,6 +195,11 @@ export const gameCategories = {
             },
           },
         },
+        final_comment: {
+          type: "textarea",
+          label: "Commento Finale",
+          placeholder: "Inserisci un commento finale per questo step",
+        },
       },
     },
   },
@@ -195,8 +220,12 @@ export const gameCategories = {
           itemLabel: "pezzo",
           placeholder: "Carica un'immagine per il pezzo del puzzle",
         },
+        final_comment: {
+          type: "textarea",
+          label: "Commento Finale",
+          placeholder: "Inserisci un commento finale per questo step",
+        },
       },
     },
   },
 }
-
