@@ -168,6 +168,11 @@ export const gameCategories = {
               label: "ID destro",
               placeholder: "Inserisci un ID numerico",
             },
+            isCorrect: {
+              type: "checkbox",
+              label: "È la coppia corretta?",
+              defaultValue: false,
+            },
           },
         },
       },

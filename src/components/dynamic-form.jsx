@@ -33,6 +33,8 @@ export default function DynamicForm({ category, schema, onChange, formData }) {
     if (!initialized && schema) {
       const initialData = {
         category: category,
+        FirstImage: "", // Aggiungiamo il campo FirstImage
+        language: "italiano", // Aggiungiamo il campo language con valore predefinito
       }
 
       if (schema.hasSteps) {
@@ -213,9 +215,6 @@ export default function DynamicForm({ category, schema, onChange, formData }) {
     }
   }
 
-  // Aggiungiamo una nuova funzione per gestire il caricamento di immagini per gli array semplici
-  // Aggiungi questa funzione dopo handleComplexImageUpload
-
   // Funzione per gestire il caricamento di un'immagine per un elemento di array semplice
   const handleArrayImageUpload = async (stepIndex, field, itemIndex, file) => {
     if (file) {
@@ -260,6 +259,52 @@ export default function DynamicForm({ category, schema, onChange, formData }) {
   // Render step-based form
   return (
     <div className="space-y-6">
+      {/* Aggiungiamo il selettore della lingua e il campo FirstImage */}
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="language">Lingua</Label>
+          <select
+            id="language"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            value={formData.language || "italiano"}
+            onChange={(e) => handleFieldChange("language", e.target.value)}
+          >
+            <option value="italiano">Italiano</option>
+            <option value="english">English</option>
+            <option value="español">Español</option>
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="FirstImage">Immagine Principale</Label>
+          <div className="space-y-2">
+            <Input
+              id="FirstImage-file"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  compressAndConvertToBase64(e.target.files[0]).then((base64String) => {
+                    handleFieldChange("FirstImage", base64String)
+                  })
+                }
+              }}
+              className="mb-2"
+            />
+            {formData.FirstImage && formData.FirstImage.startsWith("data:image") && (
+              <div className="mt-2 border rounded-md p-2">
+                <p className="text-sm text-gray-500 mb-2">Anteprima:</p>
+                <img
+                  src={formData.FirstImage || "/placeholder.svg"}
+                  alt="Anteprima Immagine Principale"
+                  className="max-h-40 max-w-full object-contain"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {formData.steps && formData.steps.length > 0 ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="flex items-center justify-between mb-4">
@@ -430,9 +475,6 @@ export default function DynamicForm({ category, schema, onChange, formData }) {
                           </div>
                         )
                       }
-
-                      // Modifica la sezione di gestione campi array semplici nel render per supportare il caricamento di immagini
-                      // Sostituisci la sezione "Gestione campi array semplici" con questo codice:
 
                       // Gestione campi array semplici
                       if (fieldSchema.isArray && fieldSchema.type !== "complex") {
