@@ -27,6 +27,11 @@ export const gameCategories = {
           label: "Immagine della Lezione",
           placeholder: "Carica un'immagine per la lezione",
         },
+        audioFileName: {
+          type: "text",
+          label: "Nome del file audio",
+          placeholder: "Inserisci il nome del file audio",
+        }
       },
     },
   },
